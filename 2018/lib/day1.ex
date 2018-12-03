@@ -51,28 +51,34 @@ Here are other examples:
 What is the first frequency your device reaches twice?
 """
 
-
-
-
-
 defmodule Day1 do
-  def frequency do
+  def frequency(state = {freq, seen, dup}) do
+    IO.puts "Opening file with #{freq} - #{length(seen)}"
     File.open!("assets/day1.txt")
     |> IO.stream(:line)
     |> Enum.map(&String.strip/1)
     |> Enum.map((fn (line) -> String.split_at(line, 1) end))
-    |> Enum.reduce(0, &parse/2)
+    |> Enum.reduce_while(state, &parse/2)
+    |> duplicate
   end
 
-
-
-  def parse({"+", frequency}, current) do
-    {int, _} = Integer.parse(frequency)
-    current + int
+  def duplicate({next, seen, nil}) do
+    frequency({next, seen, nil})
   end
 
-  def parse({"-", frequency}, current) do
+  def duplicate({next, seen, dup}) do
+    dup
+  end
+
+  def parse({"+", frequency}, {current, seen, _}) do
     {int, _} = Integer.parse(frequency)
-    current - int
+    next = current + int
+    if !Enum.member?(seen, next), do: {:cont, {next, seen ++ [next], nil}}, else: {:halt, {next, seen, next}}
+  end
+
+  def parse({"-", frequency}, {current, seen, _}) do
+    {int, _} = Integer.parse(frequency)
+    next = current - int
+    if !Enum.member?(seen, next), do: {:cont, {next, seen ++ [next], nil}}, else: {:halt, {next, seen, next}}
   end
 end
