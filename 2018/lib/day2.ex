@@ -22,6 +22,23 @@ ababab contains three a and three b, but it only counts once.
 Of these box IDs, four of them contain a letter which appears exactly twice, and three of them contain a letter which appears exactly three times. Multiplying these together produces a checksum of 4 * 3 = 12.
 
 What is the checksum for your list of box IDs?
+
+--- Part Two ---
+Confident that your list of box IDs is complete, you're ready to find the boxes full of prototype fabric.
+
+The boxes will have IDs which differ by exactly one character at the same position in both strings. For example, given the following box IDs:
+
+abcde
+fghij
+klmno
+pqrst
+fguij
+axcye
+wvxyz
+The IDs abcde and axcye are close, but they differ by two characters (the second and fourth). However, the IDs fghij and fguij differ by exactly one character, the third (h and u). Those must be the correct boxes.
+
+What letters are common between the two correct box IDs? (In the example above, this is found by removing the differing character from either ID, producing fgij.)
+
 """
 defmodule Day2 do
   def file do
@@ -33,6 +50,25 @@ defmodule Day2 do
     IO.inspect twos
     IO.inspect threes
     twos * threes
+  end
+
+  def file2 do
+    File.open!("assets/day2test.txt")
+    |> IO.stream(:line)
+    |> Enum.map(&String.strip/1)
+    |> Enum.map(&String.graphemes/1)
+    |> List.zip
+    |> Enum.map(&Tuple.to_list(&1))
+    |> Enum.reduce([], &similar/2)
+
+  end
+
+  def similar(list, state) do
+    {eq, similar, missing} = list
+    |> MapSet.new(list)
+    |> MapSet.to_list
+    |> List.myers_difference(list, &1)
+    state ++ similar
   end
 
   def sum({two, three}, {twos, threes}) do
