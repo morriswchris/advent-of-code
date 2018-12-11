@@ -43,32 +43,30 @@ What letters are common between the two correct box IDs? (In the example above, 
 defmodule Day2 do
   def file do
     {twos, threes} = File.open!("assets/day2.txt")
-    |> IO.stream(:line)
-    |> Enum.map(&String.strip/1)
-    |> Enum.map(&parse/1)
-    |> Enum.reduce({0,0}, &sum/2)
+                     |> IO.stream(:line)
+                     |> Enum.map(&String.strip/1)
+                     |> Enum.map(&parse/1)
+                     |> Enum.reduce({0,0}, &sum/2)
     IO.inspect twos
     IO.inspect threes
     twos * threes
   end
 
   def file2 do
-    File.open!("assets/day2test.txt")
+    File.open!("assets/day2.txt")
     |> IO.stream(:line)
     |> Enum.map(&String.strip/1)
-    |> Enum.map(&String.graphemes/1)
-    |> List.zip
-    |> Enum.map(&Tuple.to_list(&1))
-    |> Enum.reduce([], &similar/2)
-
+    |> compare
   end
 
-  def similar(list, state) do
-    {eq, similar, missing} = list
-    |> MapSet.new(list)
-    |> MapSet.to_list
-    |> List.myers_difference(list, &1)
-    state ++ similar
+  def compare([id | ids]) when length(ids)==0, do: []
+
+  def compare([id | ids]) do
+    IO.puts id
+    first = Enum.find(ids, fn current_id ->
+      length(String.codepoints(current_id) -- String.codepoints(id)) == 1  
+    end)
+    if first, do: String.codepoints(id) -- (String.codepoints(id) -- String.codepoints(first)) , else: compare(ids) 
   end
 
   def sum({two, three}, {twos, threes}) do
@@ -84,7 +82,7 @@ defmodule Day2 do
     |> Enum.reduce_while({0,0}, &add/2)
 
   end
-  
+
   def add({letter, 2}, {twos, threes}) do
     if !(threes == 1), do: {:cont, {1, threes}}, else: {:halt, {1, threes}}
   end
@@ -92,14 +90,14 @@ defmodule Day2 do
   def add({letter, 3}, {twos, threes}) do
     if !(twos == 1), do: {:cont, {twos, 1}}, else: {:halt, {twos, 1}}
   end
-  
+
   def add({_, _}, {twos, threes}) do
     {:cont, {twos, threes}}
   end
 
   def count_letter(letter, {graphemes, seen}) do
     count = graphemes ++ [letter]
-    |> Enum.count(& &1 == letter)
+            |> Enum.count(& &1 == letter)
 
     {graphemes ++ [letter],  Map.put(seen, letter, count)}
   end
