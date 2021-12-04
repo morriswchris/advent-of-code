@@ -12,6 +12,7 @@ import (
 type Measurements struct {
 	horizontal int
 	depth int
+	depthAim int
 }
 
 type Command struct {
@@ -27,13 +28,14 @@ func main() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	measurements := Measurements{horizontal: 0, depth: 0}
+	measurements := Measurements{horizontal: 0, depth: 0, depthAim: 0}
 	for scanner.Scan() {
 		command := commandDirections(scanner.Text())
 
 		switch command.direction {
 		case "forward":
 			measurements.horizontal += command.amount
+			measurements.depthAim += command.amount * measurements.depth
 		case "down":
 			measurements.depth += command.amount
 		case "up":
@@ -45,7 +47,9 @@ func main() {
 		log.Fatal(err)
 	}
 	position := measurements.horizontal * measurements.depth
+	positionAim := measurements.horizontal * measurements.depthAim
 	fmt.Printf("total position: %d",  position)
+	fmt.Printf("total position with aim: %d",  positionAim)
 }
 
 func commandDirections(command string) Command {
